@@ -24,8 +24,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        adsbparser.cpp
+        adsbparser.cpp \
+    adsbparserthread.cpp
 
-HEADERS  += adsbparser.h
+HEADERS  += adsbparser.h \
+    adsbparserthread.h
 
 FORMS    += adsbparser.ui

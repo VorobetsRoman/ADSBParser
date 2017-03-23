@@ -2,6 +2,9 @@
 #define ADSBPARSER_H
 
 #include <QWidget>
+#include <QThread>
+#include <QFile>
+#include "adsbparserthread.h"
 
 namespace Ui {
 class AdsbParser;
@@ -20,8 +23,12 @@ private slots:
 
     void on_pbStart_released();
 
+    void parsingDone();
+
 private:
-    Ui::AdsbParser *ui;
+    Ui::AdsbParser      *ui;
+    QThread             *parserThread {NULL};
+    AdsbParserThread    *adsbParserThread {NULL};
 };
 
 #endif // ADSBPARSER_H

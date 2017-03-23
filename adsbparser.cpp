@@ -2,9 +2,6 @@
 #include "ui_adsbparser.h"
 #include <QFile>
 #include <QFileDialog>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
 #include <QDebug>
 
 
@@ -22,6 +19,14 @@ AdsbParser::AdsbParser(QWidget *parent) :
 
 AdsbParser::~AdsbParser()
 {
+    if (adsbParserThread) adsbParserThread->deleteLater();
+    adsbParserThread = NULL;
+
+    if (parserThread) {
+        parserThread->quit();
+        parserThread = NULL;
+    }
+
     delete ui;
 }
 
@@ -38,71 +43,40 @@ void AdsbParser::on_pbFileSelect_released()
     ui->pbFileSelect->setDisabled(true);
     ui->pbFileSelect->setText("working");
 
-    QFile outFile("adsb.txt");
-    outFile.open(QIODevice::WriteOnly);
+    QFile outFile(fileNames.at(0).section("/", -1, -1).left(10));
 
-    QTextStream out(&outFile);
+    parserThread = new QThread();
+    parserThread->start();
 
-    for(QString fileName : fileNames)
-    {
-        QFile adsbFile(fileName);
-        if (!adsbFile.open(QIODevice::ReadOnly)) {
-            qDebug() << "error while reading" << fileName;
-            continue;
-        }
+    adsbParserThread = new AdsbParserThread();
+    connect(adsbParserThread, &AdsbParserThread ::parsingDone,
+            this,   &AdsbParser ::parsingDone);
 
-        QByteArray ba = adsbFile.readAll();
-        adsbFile.close();
-
-        if (ba.isEmpty()) {
-            qDebug() << "error reading file" << fileName;
-            continue;
-        }
-
-        QJsonParseError *parserError {NULL};
-        QJsonDocument jDoc = QJsonDocument::fromJson(ba, parserError);
-        if (parserError) {
-            qDebug() << parserError << fileName;
-            continue;
-        }
-
-        QJsonObject jObj = jDoc.object();
-        QJsonValue  jVal = jObj.value("acList");
-        QJsonArray  jArr = jVal.toArray();
-
-
-        quint32 time = jObj.value("stm").toVariant().toLongLong() / 1000;
-        out << time;
-
-        double lat {0}, lon {0};
-        int icao {0};
-
-        foreach (QJsonValue jArrValue, jArr) {
-            jObj = jArrValue.toObject();
-            if (jObj.contains("Lat") && jObj.contains("Long"))
-            {
-                icao    = jObj.value("Icao").toString().toInt(0, 16);
-                lat     = jObj.value("Lat").toDouble();
-                lon     = jObj.value("Long").toDouble();
-
-                out << char(9) << icao << char(9) << lat << char(9) << lon;
-            }
-        }
-        out << char(10);
-        qDebug() << "loaded" << fileName;
-    }
-
-    out.flush();
-    outFile.close();
-
-    ui->pbFileSelect->setDisabled(false);
-    ui->pbFileSelect->setText("Select files");
+    adsbParserThread->moveToThread(parserThread);
+    adsbParserThread->parsing(&fileNames, &outFile);
 }
-
 
 
 
 void AdsbParser::on_pbStart_released()
 {
 
+}
+
+
+
+
+void AdsbParser::parsingDone()
+{
+    qDebug() << "parsing done recived";
+    ui->pbFileSelect->setDisabled(false);
+    ui->pbFileSelect->setText("Select files");
+
+    if (adsbParserThread) adsbParserThread->deleteLater();
+    adsbParserThread = NULL;
+
+    if (parserThread) {
+        parserThread->quit();
+        parserThread = NULL;
+    }
 }
