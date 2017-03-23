@@ -23,12 +23,15 @@ private slots:
 
     void on_pbStart_released();
 
+    void startParsing();
     void parsingDone();
 
 private:
     Ui::AdsbParser      *ui;
     QThread             *parserThread {NULL};
     AdsbParserThread    *adsbParserThread {NULL};
+    QStringList fileNames;
+    QFile *outFile;
 };
 
 #endif // ADSBPARSER_H

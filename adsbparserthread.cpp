@@ -67,9 +67,9 @@ void AdsbParserThread::parsing(QStringList *fileList, QFile *outFile)
         }
         out << char(10);
         qDebug() << "loaded" << fileName;
+        out.flush();
     }
 
-    out.flush();
     outFile->close();
 
     emit parsingDone();

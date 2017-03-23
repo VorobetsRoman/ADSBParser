@@ -35,7 +35,7 @@ AdsbParser::~AdsbParser()
 
 void AdsbParser::on_pbFileSelect_released()
 {
-    QStringList fileNames = QFileDialog::getOpenFileNames(0, "input files", qApp->applicationDirPath(), "*.json", 0);
+    fileNames = QFileDialog::getOpenFileNames(0, "input files", qApp->applicationDirPath(), "*.json", 0);
     if (fileNames.isEmpty()) {
         return;
     }
@@ -43,18 +43,29 @@ void AdsbParser::on_pbFileSelect_released()
     ui->pbFileSelect->setDisabled(true);
     ui->pbFileSelect->setText("working");
 
-    QFile outFile(fileNames.at(0).section("/", -1, -1).left(10));
+    outFile = new QFile(fileNames.at(0).section("/", -1, -1).left(10) + ".adsb");
 
     parserThread = new QThread();
-    parserThread->start();
 
     adsbParserThread = new AdsbParserThread();
-    connect(adsbParserThread, &AdsbParserThread ::parsingDone,
-            this,   &AdsbParser ::parsingDone);
+    connect(adsbParserThread,   &AdsbParserThread   ::parsingDone,
+            this,               &AdsbParser         ::parsingDone);
+
+    connect(parserThread,       &QThread            ::started,
+            this,               &AdsbParser         ::startParsing);
 
     adsbParserThread->moveToThread(parserThread);
-    adsbParserThread->parsing(&fileNames, &outFile);
+    parserThread->start();
 }
+
+
+
+
+void AdsbParser::startParsing()
+{
+    adsbParserThread->parsing(&fileNames, outFile);
+}
+
 
 
 
@@ -68,7 +79,6 @@ void AdsbParser::on_pbStart_released()
 
 void AdsbParser::parsingDone()
 {
-    qDebug() << "parsing done recived";
     ui->pbFileSelect->setDisabled(false);
     ui->pbFileSelect->setText("Select files");
 
@@ -80,3 +90,7 @@ void AdsbParser::parsingDone()
         parserThread = NULL;
     }
 }
+
+
+
+
