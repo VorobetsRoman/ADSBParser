@@ -3,6 +3,11 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QDebug>
+#include <QProgressBar>
+#include <QDir>
+#include <QMessageBox>
+
+#include "trajectory.h"
 
 
 
@@ -35,7 +40,7 @@ AdsbParser::~AdsbParser()
 
 void AdsbParser::on_pbFileSelect_released()
 {
-    fileNames = QFileDialog::getOpenFileNames(0, "input files", qApp->applicationDirPath(), "*.json", 0);
+    fileNames = QFileDialog::getOpenFileNames(0, "input files", QDir::current().absolutePath(), "*.json", 0);
     if (fileNames.isEmpty()) {
         return;
     }
@@ -50,9 +55,10 @@ void AdsbParser::on_pbFileSelect_released()
     adsbParserThread = new AdsbParserThread();
     connect(adsbParserThread,   &AdsbParserThread   ::parsingDone,
             this,               &AdsbParser         ::parsingDone);
-
     connect(parserThread,       &QThread            ::started,
             this,               &AdsbParser         ::startParsing);
+    connect(adsbParserThread,   &AdsbParserThread   ::progress,
+            ui->progressBar,    &QProgressBar       ::setValue);
 
     adsbParserThread->moveToThread(parserThread);
     parserThread->start();
@@ -64,14 +70,6 @@ void AdsbParser::on_pbFileSelect_released()
 void AdsbParser::startParsing()
 {
     adsbParserThread->parsing(&fileNames, outFile);
-}
-
-
-
-
-void AdsbParser::on_pbStart_released()
-{
-
 }
 
 
@@ -94,3 +92,19 @@ void AdsbParser::parsingDone()
 
 
 
+void AdsbParser::on_pushButton_released()
+{
+    QString fileName = QFileDialog::getOpenFileName(0, "*adsb file", QDir::current().absolutePath(), "*.adsb", 0);
+    if (fileName == "") return;
+
+    QFile inFile(fileName);
+    if (inFile.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(0, "eror opening", "error opening your fuck'n file");
+        return;
+    }
+
+
+
+    inFile.close();
+}

@@ -6,31 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>280</width>
+    <height>145</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>AdsbParser</string>
   </property>
-  <widget class="QPushButton" name="pbFileSelect">
+  <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>50</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Файлы</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pbStart">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>190</y>
+     <x>10</x>
+     <y>70</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -38,6 +25,24 @@
    <property name="text">
     <string>PushButton</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QPushButton" name="pbFileSelect">
+      <property name="text">
+       <string>Файлы</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

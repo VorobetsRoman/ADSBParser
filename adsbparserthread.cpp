@@ -19,8 +19,14 @@ void AdsbParserThread::parsing(QStringList *fileList, QFile *outFile)
     outFile->open(QIODevice::WriteOnly);
     QTextStream out(outFile);
 
+    float fileListSize = fileList->size();
+    int fileCounter {0};
+
     for(QString fileName : *fileList)
     {
+        fileCounter++;
+        emit progress(int (100 * fileCounter / fileListSize));
+
         QFile adsbFile(fileName);
         if (!adsbFile.open(QIODevice::ReadOnly)) {
             qDebug() << "error while reading" << fileName;

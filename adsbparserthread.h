@@ -11,7 +11,8 @@ public:
     explicit AdsbParserThread(QObject *parent = 0);
 
 signals:
-    void parsingDone ();
+    void parsingDone    ();
+    void progress       (int value);
 
 public slots:
     void parsing(QStringList *fileList, QFile* outFile);

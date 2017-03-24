@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QFile>
 #include "adsbparserthread.h"
+#include <QDir>
 
 namespace Ui {
 class AdsbParser;
@@ -21,17 +22,17 @@ public:
 private slots:
     void on_pbFileSelect_released();
 
-    void on_pbStart_released();
-
     void startParsing();
     void parsingDone();
+
+    void on_pushButton_released();
 
 private:
     Ui::AdsbParser      *ui;
     QThread             *parserThread {NULL};
     AdsbParserThread    *adsbParserThread {NULL};
-    QStringList fileNames;
-    QFile *outFile;
+    QStringList         fileNames;
+    QFile               *outFile;
 };
 
 #endif // ADSBPARSER_H
