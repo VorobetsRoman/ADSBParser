@@ -5,19 +5,17 @@
 #include <QJsonObject>
 #include <QDebug>
 
-
+struct Record {qint32 icao; double lat; double lon;};
 
 AdsbParserThread::AdsbParserThread(QObject *parent) : QObject(parent)
-{
-
-}
+{}
 
 
 
 void AdsbParserThread::parsing(QStringList *fileList, QFile *outFile)
 {
     outFile->open(QIODevice::WriteOnly);
-    QTextStream out(outFile);
+//    QTextStream out(outFile);
 
     float fileListSize = fileList->size();
     int fileCounter {0};
@@ -54,26 +52,34 @@ void AdsbParserThread::parsing(QStringList *fileList, QFile *outFile)
 
 
         quint32 time = jObj.value("stm").toVariant().toLongLong() / 1000;
-        out << time;
+        outFile->write((char*)&time, sizeof(time));
 
-        double lat {0}, lon {0};
-        int icao {0};
-
+        // Закинули нужные данные из файла в память
+        QList <Record*> records;
         foreach (QJsonValue jArrValue, jArr)
         {
             jObj = jArrValue.toObject();
             if (jObj.contains("Lat") && jObj.contains("Long"))
             {
-                icao    = jObj.value("Icao").toString().toInt(0, 16);
-                lat     = jObj.value("Lat").toDouble();
-                lon     = jObj.value("Long").toDouble();
-
-                out << char(9) << icao << char(9) << lat << char(9) << lon;
+                Record *record = new Record;
+                record->icao    = jObj.value("Icao").toString().toInt(0, 16);
+                record->lat     = jObj.value("Lat").toDouble();
+                record->lon     = jObj.value("Long").toDouble();
+                records.append(record);
             }
         }
-        out << char(10);
+
+        // Записали данные из памяти в файл
+        qint32 recordsCount = records.count();
+        outFile->write((char*)&recordsCount, sizeof(recordsCount));
+        for (Record *record : records){
+            outFile->write((char*)&(record->icao), sizeof(record->icao));
+            outFile->write((char*)&(record->lat), sizeof(record->lat));
+            outFile->write((char*)&(record->lon), sizeof(record->lon));
+            delete record;
+        }
+        records.clear();
         qDebug() << "loaded" << fileName;
-        out.flush();
     }
 
     outFile->close();
